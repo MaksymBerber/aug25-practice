@@ -20,10 +20,11 @@ export const App = () => {
   const products = useMemo(() => {
     return productsFromServer.map(product => {
       const category = categoriesFromServer.find(
-        c => c.id === product.categoryId,
+        c => c.id === product.categoryId
       );
-
-      const user = usersFromServer.find(u => u.id === category.ownerId);
+      const user = usersFromServer.find(
+        u => u.id === category.ownerId
+      );
 
       return {
         ...product,
@@ -46,13 +47,16 @@ export const App = () => {
     });
   }, [products, selectedUserId, searchQuery]);
 
+  const resetFilters = () => {
+    setSelectedUserId(null);
+    setSearchQuery('');
+  };
+
   const handleSearchChange = event => {
     setSearchQuery(event.target.value);
   };
 
-  const clearSearch = () => {
-    setSearchQuery('');
-  };
+  const clearSearch = () => setSearchQuery('');
 
   return (
     <div className="section">
@@ -113,54 +117,91 @@ export const App = () => {
                 )}
               </p>
             </div>
+
+            <div className="panel-block is-flex-wrap-wrap">
+              <a
+                href="#/"
+                data-cy="AllCategories"
+                className="button is-success mr-6 is-outlined"
+              >
+                All
+              </a>
+
+              {categoriesFromServer.map(category => (
+                <a
+                  key={category.id}
+                  data-cy="Category"
+                  className="button mr-2 my-1"
+                  href="#/"
+                >
+                  {`${category.icon} - ${category.title}`}
+                </a>
+              ))}
+            </div>
+
+            <div className="panel-block">
+              <button
+                data-cy="ResetAllButton"
+                type="button"
+                onClick={resetFilters}
+                className="button is-link is-outlined is-fullwidth"
+              >
+                Reset all filters
+              </button>
+            </div>
           </nav>
         </div>
 
         <div className="box table-container">
-          <p data-cy="NoMatchingMessage">
-            No products matching selected criteria
-          </p>
-
-          <table
-            data-cy="ProductTable"
-            className="table is-striped is-narrow is-fullwidth"
-          >
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Product</th>
-                <th>Category</th>
-                <th>User</th>
-              </tr>
-            </thead>
-
-            <tbody>
-              {visibleProducts.map(product => (
-                <tr key={product.id} data-cy="Product">
-                  <td className="has-text-weight-bold" data-cy="ProductId">
-                    {product.id}
-                  </td>
-
-                  <td data-cy="ProductName">{product.name}</td>
-
-                  <td data-cy="ProductCategory">
-                    {`${product.category.icon} - ${product.category.title}`}
-                  </td>
-
-                  <td
-                    data-cy="ProductUser"
-                    className={
-                      product.user.sex === 'm'
-                        ? 'has-text-link'
-                        : 'has-text-danger'
-                    }
-                  >
-                    {product.user.name}
-                  </td>
+          {visibleProducts.length === 0 ? (
+            <p data-cy="NoMatchingMessage">
+              No products matching selected criteria
+            </p>
+          ) : (
+            <table
+              data-cy="ProductTable"
+              className="table is-striped is-narrow is-fullwidth"
+            >
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Product</th>
+                  <th>Category</th>
+                  <th>User</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+
+              <tbody>
+                {visibleProducts.map(product => (
+                  <tr key={product.id} data-cy="Product">
+                    <td
+                      className="has-text-weight-bold"
+                      data-cy="ProductId"
+                    >
+                      {product.id}
+                    </td>
+
+                    <td data-cy="ProductName">{product.name}</td>
+
+                    <td data-cy="ProductCategory">
+                      {`${product.category.icon} - ${product.category.title}`}
+                    </td>
+
+                    <td
+                      data-cy="ProductUser"
+                      className={
+                        product.user.sex === 'm'
+                          ? 'has-text-link'
+                          : 'has-text-danger'
+                      }
+                    >
+                      {product.user.name}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
         </div>
       </div>
     </div>
