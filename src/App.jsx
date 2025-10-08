@@ -1,5 +1,5 @@
 /* eslint-disable jsx-a11y/accessible-emoji */
-import React, { useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import './App.scss';
 
 import usersFromServer from './api/users';
@@ -15,6 +15,7 @@ import productsFromServer from './api/products';
 
 export const App = () => {
   const [selectedUserId, setSelectedUserId] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const products = useMemo(() => {
     return productsFromServer.map(product => {
@@ -33,12 +34,25 @@ export const App = () => {
   }, []);
 
   const visibleProducts = useMemo(() => {
-    if (selectedUserId === null) {
-      return products;
-    }
+    return products.filter(product => {
+      const matchesUser =
+        selectedUserId === null || product.user.id === selectedUserId;
 
-    return products.filter(product => product.user.id === selectedUserId);
-  }, [products, selectedUserId]);
+      const matchesSearch = product.name
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase());
+
+      return matchesUser && matchesSearch;
+    });
+  }, [products, selectedUserId, searchQuery]);
+
+  const handleSearchChange = event => {
+    setSearchQuery(event.target.value);
+  };
+
+  const clearSearch = () => {
+    setSearchQuery('');
+  };
 
   return (
     <div className="section">
@@ -79,65 +93,25 @@ export const App = () => {
                   type="text"
                   className="input"
                   placeholder="Search"
-                  value="qwe"
+                  value={searchQuery}
+                  onChange={handleSearchChange}
                 />
 
                 <span className="icon is-left">
                   <i className="fas fa-search" aria-hidden="true" />
                 </span>
 
-                <span className="icon is-right">
-                  {/* eslint-disable-next-line jsx-a11y/control-has-associated-label */}
-                  <button
-                    data-cy="ClearButton"
-                    type="button"
-                    className="delete"
-                  />
-                </span>
+                {searchQuery && (
+                  <span className="icon is-right">
+                    <button
+                      data-cy="ClearButton"
+                      type="button"
+                      className="delete"
+                      onClick={clearSearch}
+                    />
+                  </span>
+                )}
               </p>
-            </div>
-
-            <div className="panel-block is-flex-wrap-wrap">
-              <a
-                href="#/"
-                data-cy="AllCategories"
-                className="button is-success mr-6 is-outlined"
-              >
-                All
-              </a>
-
-              <a
-                data-cy="Category"
-                className="button mr-2 my-1 is-info"
-                href="#/"
-              >
-                Category 1
-              </a>
-
-              <a data-cy="Category" className="button mr-2 my-1" href="#/">
-                Category 2
-              </a>
-
-              <a
-                data-cy="Category"
-                className="button mr-2 my-1 is-info"
-                href="#/"
-              >
-                Category 3
-              </a>
-              <a data-cy="Category" className="button mr-2 my-1" href="#/">
-                Category 4
-              </a>
-            </div>
-
-            <div className="panel-block">
-              <a
-                data-cy="ResetAllButton"
-                href="#/"
-                className="button is-link is-outlined is-fullwidth"
-              >
-                Reset all filters
-              </a>
             </div>
           </nav>
         </div>
@@ -161,7 +135,7 @@ export const App = () => {
             </thead>
 
             <tbody>
-              {products.map(product => (
+              {visibleProducts.map(product => (
                 <tr key={product.id} data-cy="Product">
                   <td className="has-text-weight-bold" data-cy="ProductId">
                     {product.id}
