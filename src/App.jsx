@@ -14,15 +14,15 @@ import productsFromServer from './api/products';
 // });
 
 export const App = () => {
+  const [selectedUserId, setSelectedUserId] = useState(null);
+
   const products = useMemo(() => {
     return productsFromServer.map(product => {
       const category = categoriesFromServer.find(
-        c => c.id === product.categoryId
+        c => c.id === product.categoryId,
       );
 
-      const user = usersFromServer.find(
-        u => u.id === category.ownerId
-      );
+      const user = usersFromServer.find(u => u.id === category.ownerId);
 
       return {
         ...product,
@@ -31,6 +31,14 @@ export const App = () => {
       };
     });
   }, []);
+
+  const visibleProducts = useMemo(() => {
+    if (selectedUserId === null) {
+      return products;
+    }
+
+    return products.filter(product => product.user.id === selectedUserId);
+  }, [products, selectedUserId]);
 
   return (
     <div className="section">
@@ -45,31 +53,23 @@ export const App = () => {
               <a
                 data-cy="FilterAllUsers"
                 href="#/"
+                className={selectedUserId === null ? 'is-active' : ''}
+                onClick={() => setSelectedUserId(null)}
               >
                 All
               </a>
 
-              <a
-                data-cy="FilterUser"
-                href="#/"
-              >
-                User 1
-              </a>
-
-              <a
-                data-cy="FilterUser"
-                href="#/"
-                className="is-active"
-              >
-                User 2
-              </a>
-
-              <a
-                data-cy="FilterUser"
-                href="#/"
-              >
-                User 3
-              </a>
+              {usersFromServer.map(user => (
+                <a
+                  key={user.id}
+                  data-cy="FilterUser"
+                  href="#/"
+                  className={selectedUserId === user.id ? 'is-active' : ''}
+                  onClick={() => setSelectedUserId(user.id)}
+                >
+                  {user.name}
+                </a>
+              ))}
             </p>
 
             <div className="panel-block">
@@ -114,11 +114,7 @@ export const App = () => {
                 Category 1
               </a>
 
-              <a
-                data-cy="Category"
-                className="button mr-2 my-1"
-                href="#/"
-              >
+              <a data-cy="Category" className="button mr-2 my-1" href="#/">
                 Category 2
               </a>
 
@@ -129,11 +125,7 @@ export const App = () => {
               >
                 Category 3
               </a>
-              <a
-                data-cy="Category"
-                className="button mr-2 my-1"
-                href="#/"
-              >
+              <a data-cy="Category" className="button mr-2 my-1" href="#/">
                 Category 4
               </a>
             </div>
@@ -171,10 +163,7 @@ export const App = () => {
             <tbody>
               {products.map(product => (
                 <tr key={product.id} data-cy="Product">
-                  <td
-                    className="has-text-weight-bold"
-                    data-cy="ProductId"
-                  >
+                  <td className="has-text-weight-bold" data-cy="ProductId">
                     {product.id}
                   </td>
 
